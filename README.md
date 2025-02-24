@@ -30,8 +30,8 @@ Before setting up the bot, make sure you have:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/iglideCS/pk-cinema-bot.git
-cd telegram-file-storage-bot
+git clone https://github.com/iglideCS/KDH.git
+cd server
 ```
 
 2. Install dependencies:
@@ -57,28 +57,25 @@ npm start
 
 ### Admin Commands
 
-- `/link` or `/sl`: Store a single file from a channel post
+- `/link`: Store a single file from a channel post
   ```
   /link https://t.me/c/xxxxx/123
   ```
 
-- `/batch` or `/ml`: Store multiple files from a range of messages
+- `/batch` : Store multiple files from a range of messages
   ```
   /batch https://t.me/c/xxxxx/123 https://t.me/c/xxxxx/128
   ```
 
-- `/setcaption` or `/sc`: Set a custom caption for shared files
+- `/broadcast`: Broadcast a message
   ```
-  /setcaption Your custom caption here
+  /broadcast Reply to message
   ```
-
-- `/removecaption` or `/rc`: Disable custom caption
-- `/showcaption` or `/shc`: View current caption settings
+- `/stats`: Check Bot Statistics
 
 ### User Commands
 
 - `/start`: Start the bot and view welcome message
-- `/start <unique_id>`: Retrieve stored files using a unique ID
 
 ## File Storage Process 📝
 
@@ -133,4 +130,4 @@ If you encounter any issues or have questions, please:
 - [Node.js](https://nodejs.org/) - Runtime Environment
 
 ---
-Made with ❤️ by [Glider]
+Made with ❤️ by [KARTA]
