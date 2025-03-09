@@ -14,6 +14,7 @@ const setupStats = require('./plugins/stats')
 const setupTVShowPostCommand = require('./plugins/post');
 const config = require('./config');
 const shortenLink = require('./utils/linkShortener');
+const setupKoyebRedeploy = require('./plugins/koyebRedeploy');
 
 mongoose.connect(process.env.MONGODB_URI,{
     dbName: process.env.DATABASE_NAME,
@@ -34,6 +35,7 @@ const logger = new Logger(bot, config.LOG_CHANNEL_ID);
 setupBroadcast(bot, logger);
 setupStats(bot, logger)
 setupTVShowPostCommand(bot, logger, ADMIN_IDS)
+setupKoyebRedeploy(bot, logger, ADMIN_IDS, config.KOYEB_API_KEY, config.KOYEB_SERVICE_ID);
 
 const mainKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('🏠 Home', 'home')],
