@@ -4,7 +4,7 @@ module.exports = function setupRedeploy(bot, isAdmin, logger) {
     bot.command('redeploy', isAdmin, async (ctx) => {
         try {
             // Get SHA from environment variable (should be set by your CI/CD)
-            const commitSHA = process.env.KOYEB_GIT_COMMIT_SHA || process.env.COMMIT_SHA;
+            const commitSHA = process.env.COMMIT_SHA;
             
             if (!commitSHA || !/^[0-9a-f]{40}$/.test(commitSHA)) {
                 throw new Error('Valid Git SHA not available in environment variables');
