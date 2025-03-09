@@ -10,32 +10,30 @@ const descriptions = require('./script');
 const express = require('express');
 const Logger = require('./logs/Logs');
 const app = express();
-const setupStats = require('./plugins/stats');
-const shortenLink = require('./utils/linkShortener');
-const setupTVShowPostCommand = require('./plugins/post');
+const setupStats = require('./plugins/stats')
+const setupPostCommand = require('./plugins/post');
 const config = require('./config');
+const shortenLink = require('./utils/linkShortener');
 
-
-
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect(process.env.MONGODB_URI,{
     dbName: process.env.DATABASE_NAME,
     retryWrites: true,
-    w: 'majority',
+    w: 'majority'
 })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf(config.BOT_TOKEN);
 const ADMIN_IDS = config.ADMIN_IDS.split(',').map(id => parseInt(id));
-const FILE_DATABASE_CHANNEL = config.FILE_DATABASE_CHANNEL;
+const DATABASE_FILE_CHANNELS = config.DATABASE_FILE_CHANNELS.split(',').map(id => id.trim());
 const FORCE_CHANNEL_ID = config.FORCE_CHANNEL_ID;
-const FORCE_CHANNEL_USERNAME = config.FORCE_CHANNEL_USERNAME;
+const FORCE_CHANNEL_USERNAME = config.FORCE_CHANNEL_USERNAME ||'K_DRAMA_HUBS';
 const AUTO_DELETE = config.AUTO_DELETE_FILES === 'true';
-const DELETE_MINUTES = parseInt(config.AUTO_DELETE_TIME) || 10 ;
+const DELETE_MINUTES = parseInt(config.AUTO_DELETE_TIME) || 7;
 const logger = new Logger(bot, config.LOG_CHANNEL_ID);
 setupBroadcast(bot, logger);
-setupStats(bot, logger);
-setupTVShowPostCommand(bot, logger, ADMIN_IDS);
+setupStats(bot, logger)
+setupPostCommand(bot, logger, ADMIN_IDS)
 
 const mainKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('🏠 Home', 'home')],
@@ -48,26 +46,54 @@ const mainKeyboard = Markup.inlineKeyboard([
 
 const isAdmin = async (ctx, next) => {
     if (!ADMIN_IDS.includes(ctx.from.id)) {
-        return ctx.reply('❌ 𝑬𝒙𝒄𝒍𝒖𝒔𝒊𝒗𝒆 𝑴𝒆𝒎𝒃𝒆𝒓 𝑪𝒐𝒎𝒎𝒂𝒏𝒅');
+        return ctx.reply('❌ 𝙊𝙣𝙡𝙮 𝙖𝙙𝙢𝙞𝙣𝙨 𝙘𝙖𝙣 𝙪𝙨𝙚 𝙩𝙝𝙞𝙨 𝙘𝙤𝙢𝙢𝙖𝙣𝙙');
     }
     return next();
 };
+
 const generateUniqueId = () => crypto.randomBytes(8).toString('hex');
 
-const extractMessageId = (link) => {
+const extractMessageInfo = (link) => {
     try {
         const url = new URL(link);
-        return parseInt(url.pathname.split('/').pop());
+        const pathParts = url.pathname.split('/').filter(p => p !== '');
+        
+        // Handle numeric channel IDs (e.g., https://t.me/c/1234567890/123)
+        if (pathParts[0] === 'c' && pathParts.length >= 3) {
+            const channelId = `-100${pathParts[1]}`;
+            const messageId = parseInt(pathParts[2]);
+            return { channelId, messageId };
+        }
+        // Handle username-based links (e.g., https://t.me/my_channel/123)
+        else if (pathParts.length >= 2) {
+            const username = pathParts[0];
+            const messageId = parseInt(pathParts[1]);
+            return { username, messageId };
+        }
+        return null;
     } catch (error) {
         return null;
     }
 };
 
-const getMessageFromChannel = async (ctx, messageId) => {
+const resolveChannelId = async (ctx, identifier) => {
+    try {
+        if (identifier.startsWith('@')) {
+            const chat = await ctx.telegram.getChat(identifier);
+            return chat.id.toString();
+        }
+        return identifier;
+    } catch (error) {
+        console.error('Channel resolution error:', error);
+        return null;
+    }
+};
+
+const getMessageFromChannel = async (ctx, channelIdOrUsername, messageId) => {
     try {
         const forwardedMsg = await ctx.telegram.forwardMessage(
             ctx.chat.id,
-            FILE_DATABASE_CHANNEL,
+            channelIdOrUsername,
             messageId,
             { disable_notification: true }
         );
@@ -137,14 +163,14 @@ const sendFile = async (ctx, file) => {
     }
 };
 
-const storeFileFromMessage = async (message, uniqueId, adminId) => {
+const storeFileFromMessage = async (message, uniqueId, adminId, channelId) => {
     const fileData = getFileDataFromMessage(message);
     if (fileData) {
         const newFile = new File({
             ...fileData,
             stored_by: adminId,
-            file_link: message.link,
-            channel_id: FILE_DATABASE_CHANNEL,
+            file_link: message.link || 'NA',
+            channel_id: channelId,
             is_multiple: true,
             unique_id: uniqueId,
             message_id: message.message_id
@@ -174,20 +200,28 @@ bot.command(['link', 'sl'], isAdmin, async (ctx) => {
                 ctx.message.text,
                 `${ctx.from.first_name} (${ctx.from.username || 'Untitled'})` || 'Unknown',
                 'Link command used',
-                'FAILED',
+                'Failed to store',
                 'No Link Provided'
             );
             return ctx.reply('Please provide the message link in the following format:\n/link https://t.me/c/xxxxx/123');
         }
 
-        const messageId = extractMessageId(args[0]);
-        if (!messageId) return ctx.reply('Invalid message link format.');
+        const messageInfo = extractMessageInfo(args[0]);
+        if (!messageInfo) return ctx.reply('Invalid message link format.');
 
-        const message = await getMessageFromChannel(ctx, messageId);
+        // Resolve channel identifier
+        const channelIdentifier = messageInfo.channelId || `@${messageInfo.username}`;
+        const targetChannelId = await resolveChannelId(ctx, channelIdentifier);
+        
+        if (!targetChannelId || !DATABASE_FILE_CHANNELS.includes(targetChannelId)) {
+            return ctx.reply('❌ This channel is not allowed for file storage.');
+        }
+
+        const message = await getMessageFromChannel(ctx, targetChannelId, messageInfo.messageId);
         if (!message) return ctx.reply('Message not found or not accessible.');
 
         const uniqueId = generateUniqueId();
-        const stored = await storeFileFromMessage(message, uniqueId, ctx.from.id);
+        const stored = await storeFileFromMessage(message, uniqueId, ctx.from.id, targetChannelId);
 
         if (stored) {
             const retrievalLink = `https://t.me/${ctx.botInfo.username}?start=${uniqueId}`;
@@ -195,11 +229,19 @@ bot.command(['link', 'sl'], isAdmin, async (ctx) => {
             
             const responseMessage = [
                 '✅ File Stored Successfully!',
-                `🔗 Original URL: ${retrievalLink}`,
-                shortUrl ? `🔗 Shortened URL: ${shortUrl}` : '(URL shortening service unavailable)'
+                `🔗 Original URL: <code>${retrievalLink}</code>`,
+                shortUrl ? `🔗 Shortened URL: <code>${shortUrl}</code>` : '(URL shortening service unavailable)'
             ].join('\n');
         
-            await ctx.reply(responseMessage);
+            await ctx.reply(responseMessage, {parse_mode: 'HTML'});
+
+            await logger.command(
+                ctx.from.id,
+                `${ctx.from.first_name} (${ctx.from.username || 'Untitled'})` || 'Unknown',
+                'Link command used',
+                'SUCCESS',
+                `Single file stored \nURL: ${retrievalLink}`
+            );
         }
     } catch (error) {
         await logger.error(
@@ -210,9 +252,10 @@ bot.command(['link', 'sl'], isAdmin, async (ctx) => {
             error.message
         );
         console.error('Error storing file from link:', error);
-        await ctx.reply('Error storing file. Please check if the link is from the file database channel channel.');
+        await ctx.reply('Error storing file. Please check if the link is from an allowed channel.');
     }
 });
+
 bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
     try {
         const args = ctx.message.text.split(' ').slice(1);
@@ -221,17 +264,35 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
             return ctx.reply('Format: /batch https://t.me/c/xxxxx/123 https://t.me/c/xxxxx/128');
         }
 
-        const startId = parseInt(args[0].split('/').pop());
-        const endId = parseInt(args[1].split('/').pop());
+        // Extract message info from both links
+        const startInfo = extractMessageInfo(args[0]);
+        const endInfo = extractMessageInfo(args[1]);
+        if (!startInfo || !endInfo) return ctx.reply('Invalid message links.');
+
+        // Resolve channel IDs
+        const startChannelId = await resolveChannelId(ctx, startInfo.channelId || `@${startInfo.username}`);
+        const endChannelId = await resolveChannelId(ctx, endInfo.channelId || `@${endInfo.username}`);
         
-        if (!startId || !endId || endId < startId || endId - startId > 100) {
+        // Validate channels
+        if (!startChannelId || !endChannelId) return ctx.reply('Invalid channel in links.');
+        if (startChannelId !== endChannelId) return ctx.reply('Both links must be from the same channel.');
+        if (!DATABASE_FILE_CHANNELS.includes(startChannelId)) {
+            return ctx.reply('❌ This channel is not allowed for file storage.');
+        }
+
+        // Validate message range
+        if (endInfo.messageId < startInfo.messageId || endInfo.messageId - startInfo.messageId > 100) {
             return ctx.reply('Invalid range. Maximum range is 100 messages.');
         }
 
         const uniqueId = generateUniqueId();
         const progressMsg = await ctx.reply('Processing messages...');
         
-        const messageIds = Array.from({ length: endId - startId + 1 }, (_, i) => startId + i);
+        const messageIds = Array.from(
+            { length: endInfo.messageId - startInfo.messageId + 1 },
+            (_, i) => startInfo.messageId + i
+        );
+
         const BATCH_SIZE = 10;
         const files = [];
         
@@ -241,7 +302,7 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
                 try {
                     const message = await ctx.telegram.forwardMessage(
                         ctx.chat.id,
-                        FILE_DATABASE_CHANNEL,
+                        startChannelId,
                         msgId,
                         { disable_notification: true }
                     );
@@ -253,6 +314,7 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
                                 ...fileData,
                                 stored_by: ctx.from.id,
                                 unique_id: uniqueId,
+                                channel_id: startChannelId,
                                 message_id: msgId
                             });
                         }
@@ -262,7 +324,7 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
                     console.error(`Error processing message ${msgId}:`, error);
                 }
             }));
-            
+
             await ctx.telegram.editMessageText(
                 ctx.chat.id,
                 progressMsg.message_id,
@@ -272,16 +334,27 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
         }
 
         if (files.length > 0) {
+            // Save all files to database
+            await File.insertMany(files);
+            
             const retrievalLink = `https://t.me/${ctx.botInfo.username}?start=${uniqueId}`;
             const shortUrl = await shortenLink(retrievalLink, uniqueId);
             
             const responseMessage = [
-                `✅ Stored ${files.length} files!`,
-                `🔗 Original URL: ${retrievalLink}`,
-                shortUrl ? `🔗 Shortened URL: ${shortUrl}` : '(URL shortening service unavailable)'
+                `✅ Stored ${files.length}/${messageIds.length} files!`,
+                `🔗 Original URL: <code>${retrievalLink}</code>`,
+                shortUrl ? `🔗 Shortened URL: <code>${shortUrl}</code>` : '(URL shortening unavailable)'
             ].join('\n');
         
-            await ctx.reply(responseMessage);
+            await ctx.reply(responseMessage, {parse_mode: 'HTML'});
+
+            await logger.command(
+                ctx.from.id,
+                ctx.from.username || 'Unknown',
+                'Batch command used',
+                'SUCCESS',
+                `Total ${files.length} files stored \n URL: ${retrievalLink}`,
+            );
         }
         await ctx.telegram.deleteMessage(ctx.chat.id, progressMsg.message_id);
         
@@ -335,6 +408,11 @@ bot.command('start', async (ctx) => {
             let sendingMsg = await ctx.reply(`⌛️ Sending ${files.length} file(s)...`);
             const sentMessages = [];
 
+            if (AUTO_DELETE) {
+                const warningMsg = await ctx.reply(`⚠️ Warning! These files will be automatically deleted in ${DELETE_MINUTES} minutes. Forward them now to keep copies!`);
+                sentMessages.push(warningMsg.message_id);
+            }
+
             for (const file of files) {
                 try {
                     const sentMessage = await sendFile(ctx, file);
@@ -349,11 +427,6 @@ bot.command('start', async (ctx) => {
             await ctx.telegram.deleteMessage(ctx.chat.id, sendingMsg.message_id);
             const completionMsg = await ctx.reply('✅ All files sent!');
             sentMessages.push(completionMsg.message_id);
-
-            if (AUTO_DELETE) {
-                const warningMsg = await ctx.reply(`⚠️ 𝐀𝐥𝐞𝐫𝐭! 𝐅𝐢𝐥𝐞𝐬 𝐰𝐢𝐥𝐥 𝐛𝐞 𝐝𝐞𝐥𝐞𝐭𝐞𝐝 𝐢𝐧 ${DELETE_MINUTES} 𝐦𝐢𝐧𝐮𝐭𝐞𝐬 𝐭𝐨 𝐚𝐯𝐨𝐢𝐝 𝐜𝐨𝐩𝐲𝐫𝐢𝐠𝐡𝐭 𝐬𝐨 𝐟𝐨𝐫𝐰𝐚𝐫𝐝 𝐭𝐡𝐞𝐦 𝐧𝐨𝐰 𝐭𝐨 𝐤𝐞𝐞𝐩 𝐜𝐨𝐩𝐢𝐞𝐬!`);
-                sentMessages.push(warningMsg.message_id);
-            }
 
             if (AUTO_DELETE) {
                 setTimeout(async () => {

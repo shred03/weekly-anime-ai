@@ -12,3 +12,9 @@
 [2025-03-09 12:40:02] COMMAND - User: Mithun (mithun_naam_toh_suna_hoga)(7019977613) - Command: TV post command used - Status: SUCCESS - Details: Created post preview for TV show: Newtopia
 [2025-03-09 12:47:27] COMMAND - User: Mithun (mithun_naam_toh_suna_hoga)(7019977613) - Command: start command used - Status: SUCCESS - Details: Welcome message sent!
 [2025-03-09 12:47:34] COMMAND - User: mithun_naam_toh_suna_hoga(7019977613) - Command: Batch command used - Status: FAILED - Details: Invalid format
+[2025-03-09 15:46:28] COMMAND - User: mithun_naam_toh_suna_hoga(7019977613) - Command: Batch command used - Status: SUCCESS - Details: Total 6 files stored 
+ URL: https://t.me/k_drama_collection_bot?start=d75ec47e45b0f458
+[2025-03-09 15:46:36] COMMAND - User: Mithun (mithun_naam_toh_suna_hoga)(7019977613) - Command: File retrieval command used - Status: SUCCESS - Details: Retrieved 6 files with URL: https://t.me/k_drama_collection_bot?start=d75ec47e45b0f458
+[2025-03-09 15:51:17] COMMAND - User: mithun_naam_toh_suna_hoga(7019977613) - Command: Batch command used - Status: SUCCESS - Details: Total 6 files stored 
+ URL: https://t.me/k_drama_collection_bot?start=e7d9bfa98b08718b
+[2025-03-09 15:51:29] COMMAND - User: Mithun (mithun_naam_toh_suna_hoga)(7019977613) - Command: File retrieval command used - Status: SUCCESS - Details: Retrieved 6 files with URL: https://t.me/k_drama_collection_bot?start=e7d9bfa98b08718b

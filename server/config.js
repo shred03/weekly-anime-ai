@@ -5,7 +5,7 @@ const config = {
     TMDB_BASE_URL: 'https://api.themoviedb.org/3',
     BOT_TOKEN: process.env.BOT_TOKEN,
     ADMIN_IDS: process.env.ADMIN_IDS,
-    FILE_DATABASE_CHANNEL: process.env.FILE_DATABASE_CHANNEL,
+    DATABASE_FILE_CHANNELS: process.env.DATABASE_FILE_CHANNELS,
     FORCE_CHANNEL_ID: process.env.FORCE_CHANNEL_ID,
     FORCE_CHANNEL_USERNAME: process.env.FORCE_CHANNEL_USERNAME,
     AUTO_DELETE_FILES: process.env.AUTO_DELETE_FILES === 'true',
