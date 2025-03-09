@@ -12,6 +12,8 @@ const Logger = require('./logs/Logs');
 const app = express();
 const setupStats = require('./plugins/stats');
 const shortenLink = require('./utils/linkShortener');
+const setupTVShowPostCommand = require('./plugins/post');
+const config = require('./config');
 
 
 
@@ -24,15 +26,16 @@ mongoose.connect(process.env.MONGODB_URI, {
     .catch(err => console.error('MongoDB connection error:', err));
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const ADMIN_IDS = process.env.ADMIN_IDS.split(',').map(id => parseInt(id));
-const FILE_DATABASE_CHANNEL = process.env.FILE_DATABASE_CHANNEL;
-const FORCE_CHANNEL_ID = process.env.FORCE_CHANNEL_ID;
-const FORCE_CHANNEL_USERNAME = process.env.FORCE_CHANNEL_USERNAME;
-const AUTO_DELETE = process.env.AUTO_DELETE_FILES === 'true';
-const DELETE_MINUTES = parseInt(process.env.AUTO_DELETE_TIME) || 10 ;
-const logger = new Logger(bot, process.env.LOG_CHANNEL_ID);
+const ADMIN_IDS = config.ADMIN_IDS.split(',').map(id => parseInt(id));
+const FILE_DATABASE_CHANNEL = config.FILE_DATABASE_CHANNEL;
+const FORCE_CHANNEL_ID = config.FORCE_CHANNEL_ID;
+const FORCE_CHANNEL_USERNAME = config.FORCE_CHANNEL_USERNAME;
+const AUTO_DELETE = config.AUTO_DELETE_FILES === 'true';
+const DELETE_MINUTES = parseInt(config.AUTO_DELETE_TIME) || 10 ;
+const logger = new Logger(bot, config.LOG_CHANNEL_ID);
 setupBroadcast(bot, logger);
 setupStats(bot, logger);
+setupTVShowPostCommand(bot, logger, ADMIN_IDS);
 
 const mainKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('🏠 Home', 'home')],

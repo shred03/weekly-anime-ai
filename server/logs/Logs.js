@@ -27,7 +27,7 @@ class Logger {
                 details
             };
             const safeUsername = username.replace(/_/g, '\\_');
-
+            const safeDetails = details.replace(/_/g, '\\_');
             // Create log message
             const logMessage = `
 📝 Bot Log Entry
@@ -38,7 +38,7 @@ Bot Name: [K-Drama Collection](https://t.me/k_drama_collection_bot)
 🤖 Command: ${command}
 📊 Status: ${status}
 🔍 Type: ${type}
-${details ? `📋 Details: ${details}` : ''}`;
+${details ? `📋 Details: ${safeDetails}` : ''}`;
 
             // Save to file
             const fileName = `${format(new Date(), 'yyyy-MM-dd')}.log`;
