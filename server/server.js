@@ -11,7 +11,7 @@ const express = require('express');
 const Logger = require('./logs/Logs');
 const app = express();
 const setupStats = require('./plugins/stats')
-const setupPostCommand = require('./plugins/post');
+const setupTVShowPostCommand = require('./plugins/post');
 const config = require('./config');
 const shortenLink = require('./utils/linkShortener');
 
@@ -33,7 +33,7 @@ const DELETE_MINUTES = parseInt(config.AUTO_DELETE_TIME) || 7;
 const logger = new Logger(bot, config.LOG_CHANNEL_ID);
 setupBroadcast(bot, logger);
 setupStats(bot, logger)
-setupPostCommand(bot, logger, ADMIN_IDS)
+setupTVShowPostCommand(bot, logger, ADMIN_IDS)
 
 const mainKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('🏠 Home', 'home')],
