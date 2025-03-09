@@ -1,87 +1,42 @@
 const axios = require('axios');
 
-/**
- * Setup Koyeb redeployment command plugin
- * @param {Object} bot - Telegraf bot instance
- * @param {Object} logger - Logger instance for logging operations
- * @param {Array} adminIds - Array of admin user IDs
- * @param {String} koyebApiKey - Koyeb API key
- * @param {String} koyebServiceId - Koyeb service ID
- */
-function setupKoyebRedeploy(bot, logger, adminIds, koyebApiKey, koyebServiceId) {
-    if (!koyebApiKey || !koyebServiceId) {
-        console.warn('⚠️ Koyeb redeployment configuration is incomplete. The redeploy command will not work.');
-        return;
-    }
-
-    const isAdmin = (ctx, next) => {
-        if (!adminIds.includes(ctx.from.id)) {
-            return ctx.reply('❌ Only admins can use this command');
-        }
-        return next();
-    };
-
-    bot.command(['restart', 'redeploy'], isAdmin, async (ctx) => {
+module.exports = function setupRedeploy(bot, isAdmin, logger) {
+    bot.command('redeploy', isAdmin, async (ctx) => {
         try {
-            const progressMsg = await ctx.reply('🔄 Initiating redeployment on Koyeb...');
-
-            // Use the dedicated redeploy endpoint
-            const response = await axios({
-                method: 'POST',
-                url: `https://api.koyeb.com/v1/services/${koyebServiceId}/redeploy`,
-                headers: {
-                    'Authorization': `Bearer ${koyebApiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                data: {
-                    // These are the default parameters, adjust as needed
-                    deployment_group: "web",
+            const response = await axios.post(
+                `https://app.koyeb.com/v1/services/${process.env.KOYEB_SERVICE_ID}/redeploy`,
+                {
+                    deployment_group: process.env.KOYEB_DEPLOYMENT_GROUP || "live",
+                    sha: process.env.KOYEB_SHA || "latest",
                     use_cache: true,
                     skip_build: false
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.KOYEB_API_KEY}`
+                    }
                 }
-            });
+            );
 
-            if (response.status === 202 || response.status === 200 || response.status === 201) {
-                await ctx.telegram.editMessageText(
-                    ctx.chat.id,
-                    progressMsg.message_id,
-                    null,
-                    '✅ Redeployment initiated successfully! The bot will restart shortly.'
-                );
-
-                await logger.command(
-                    ctx.from.id,
-                    ctx.from.username || 'Unknown',
-                    'Bot redeploy command used',
-                    'SUCCESS',
-                    'Bot redeployment triggered on Koyeb'
-                );
-            } else {
-                throw new Error(`Koyeb API returned status: ${response.status}`);
-            }
+            await ctx.reply('🚀 Redeploy initiated successfully!\nStatus: ' + response.data.status);
+            await logger.command(
+                ctx.from.id,
+                ctx.from.username || 'Unknown',
+                'Redeploy command',
+                'SUCCESS',
+                `Redeploy triggered by admin`
+            );
         } catch (error) {
-            console.error('Koyeb redeployment error:', error);
-            
-            let errorMessage = '❌ Failed to redeploy the bot';
-            if (error.response) {
-                errorMessage += `: ${error.response.data.message || error.response.statusText}`;
-            } else if (error.message) {
-                errorMessage += `: ${error.message}`;
-            }
-            
-            await ctx.reply(errorMessage);
-            
+            console.error('Redeploy error:', error.response?.data || error.message);
+            await ctx.reply('❌ Redeploy failed: ' + (error.response?.data?.message || error.message));
             await logger.error(
                 ctx.from.id,
                 ctx.from.username || 'Unknown',
-                'Bot redeploy command',
+                'Redeploy command',
                 'FAILED',
-                error.message || 'Unknown error'
+                error.message
             );
         }
     });
-
-    console.log('✅ Koyeb redeployment plugin initialized');
-}
-
-module.exports = setupKoyebRedeploy;
+};
