@@ -1,17 +1,12 @@
 const axios = require('axios');
-
+const config = require('../config')
 module.exports = function setupRedeploy(bot, isAdmin, logger) {
     bot.command('redeploy', isAdmin, async (ctx) => {
         try {
             // Get SHA from environment variable (should be set by your CI/CD)
             const commitSHA = process.env.COMMIT_SHA;
-            
-            if (!commitSHA || !/^[0-9a-f]{40}$/.test(commitSHA)) {
-                throw new Error('Valid Git SHA not available in environment variables');
-            }
-
             const response = await axios.post(
-                `https://app.koyeb.com/v1/services/${process.env.KOYEB_SERVICE_ID}/redeploy`,
+                `https://app.koyeb.com/v1/services/${config.KOYEB_SERVICE_ID}/redeploy`,
                 {
                     deployment_group: process.env.KOYEB_DEPLOYMENT_GROUP || "live",
                     sha: commitSHA,
@@ -26,7 +21,7 @@ module.exports = function setupRedeploy(bot, isAdmin, logger) {
                 }
             );
 
-            await ctx.reply(`🚀 Redeploy initiated successfully!\nCommit: ${commitSHA.substring(0, 7)}`);
+            await ctx.reply(`🚀 Redeploy initiated successfully!`);
             await logger.command(
                 ctx.from.id,
                 ctx.from.username || 'Unknown',
