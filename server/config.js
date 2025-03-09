@@ -10,9 +10,7 @@ const config = {
     FORCE_CHANNEL_USERNAME: process.env.FORCE_CHANNEL_USERNAME,
     AUTO_DELETE_FILES: process.env.AUTO_DELETE_FILES === 'true',
     AUTO_DELETE_TIME: process.env.AUTO_DELETE_TIME,
-    LOG_CHANNEL_ID: process.env.LOG_CHANNEL_ID,
-    KOYEB_API_KEY: process.env.KOYEB_API_KEY,
-    KOYEB_SERVICE_ID: process.env.KOYEB_SERVICE_ID
+    LOG_CHANNEL_ID: process.env.LOG_CHANNEL_ID
 
 
 }

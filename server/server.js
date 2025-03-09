@@ -14,7 +14,6 @@ const setupStats = require('./plugins/stats')
 const setupTVShowPostCommand = require('./plugins/post');
 const config = require('./config');
 const shortenLink = require('./utils/linkShortener');
-const setupRedeploy = require('./plugins/koyebRedeploy');
 mongoose.connect(process.env.MONGODB_URI,{
     dbName: process.env.DATABASE_NAME,
     retryWrites: true,
@@ -50,7 +49,6 @@ const isAdmin = async (ctx, next) => {
     }
     return next();
 };
-setupRedeploy(bot, isAdmin, logger);
 
 const generateUniqueId = () => crypto.randomBytes(8).toString('hex');
 
