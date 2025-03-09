@@ -25,19 +25,43 @@ function setupKoyebRedeploy(bot, logger, adminIds, koyebApiKey, koyebServiceId) 
         try {
             const progressMsg = await ctx.reply('🔄 Initiating redeployment on Koyeb...');
 
-            // Send redeployment request to Koyeb API
-            const response = await axios.post(
-                `https://app.koyeb.com/v1/services/${koyebServiceId}/deployments`,
-                {}, // Koyeb expects an empty object in the request body
-                {
+            // First, get the latest deployment for the service
+            let latestDeployment;
+            try {
+                const deploymentsResponse = await axios({
+                    method: 'GET',
+                    url: `https://api.koyeb.com/v1/deployments?service_id=${koyebServiceId}&limit=1`,
                     headers: {
                         'Authorization': `Bearer ${koyebApiKey}`,
                         'Content-Type': 'application/json'
                     }
+                });
+                
+                if (deploymentsResponse.data && deploymentsResponse.data.deployments && deploymentsResponse.data.deployments.length > 0) {
+                    latestDeployment = deploymentsResponse.data.deployments[0];
+                } else {
+                    throw new Error('No deployments found for this service');
                 }
-            );
+            } catch (error) {
+                console.error('Error fetching deployments:', error);
+                throw new Error('Failed to get latest deployment information');
+            }
 
-            if (response.status === 201) {
+            // Create a new deployment based on the latest one
+            const response = await axios({
+                method: 'POST',
+                url: `https://api.koyeb.com/v1/deployments`,
+                headers: {
+                    'Authorization': `Bearer ${koyebApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                data: {
+                    service_id: koyebServiceId,
+                    definition: latestDeployment.definition
+                }
+            });
+
+            if (response.status === 202 || response.status === 200 || response.status === 201) {
                 await ctx.telegram.editMessageText(
                     ctx.chat.id,
                     progressMsg.message_id,
@@ -53,7 +77,7 @@ function setupKoyebRedeploy(bot, logger, adminIds, koyebApiKey, koyebServiceId) 
                     'Bot redeployment triggered on Koyeb'
                 );
             } else {
-                throw new Error(`Koyeb API returned unexpected status: ${response.status}`);
+                throw new Error(`Koyeb API returned status: ${response.status}`);
             }
         } catch (error) {
             console.error('Koyeb redeployment error:', error);
