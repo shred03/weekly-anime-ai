@@ -295,6 +295,8 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
 
         const BATCH_SIZE = 10;
         const files = [];
+        let processedCount = 0;
+        let deletedCount = 0;
         
         for (let i = 0; i < messageIds.length; i += BATCH_SIZE) {
             const batch = messageIds.slice(i, i + BATCH_SIZE);
@@ -318,10 +320,14 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
                                 message_id: msgId
                             });
                         }
+                        await ctx.telegram.deleteMessage(ctx.chat.id, message.message_id);
                     }
-                    await ctx.telegram.deleteMessage(ctx.chat.id, message.message_id);
+                    processedCount++;
                 } catch (error) {
-                    console.error(`Error processing message ${msgId}:`, error);
+                    // Handle deleted messages silently
+                    deletedCount++;
+                    processedCount++;
+                    console.log(`Message ${msgId} not found or could not be forwarded`);
                 }
             }));
 
@@ -342,6 +348,7 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
             
             const responseMessage = [
                 `✅ Stored ${files.length}/${messageIds.length} files!`,
+                `${deletedCount > 0 ? `ℹ️ ${deletedCount} messages were skipped (likely deleted).` : ''}`,
                 `🔗 Original URL: <code>${retrievalLink}</code>`,
                 shortUrl ? `🔗 Shortened URL: <code>${shortUrl}</code>` : '(URL shortening unavailable)'
             ].join('\n');
@@ -353,9 +360,12 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
                 ctx.from.username || 'Unknown',
                 'Batch command used',
                 'SUCCESS',
-                `Total ${files.length} files stored \n URL: ${retrievalLink}`,
+                `Total ${files.length}/${processedCount} files stored (${deletedCount} skipped) \n URL: ${retrievalLink}`,
             );
+        } else {
+            await ctx.reply('⚠️ No valid files were found in the specified range.');
         }
+        
         await ctx.telegram.deleteMessage(ctx.chat.id, progressMsg.message_id);
         
     } catch (error) {
