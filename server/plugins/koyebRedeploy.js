@@ -25,39 +25,19 @@ function setupKoyebRedeploy(bot, logger, adminIds, koyebApiKey, koyebServiceId) 
         try {
             const progressMsg = await ctx.reply('🔄 Initiating redeployment on Koyeb...');
 
-            // First, get the latest deployment for the service
-            let latestDeployment;
-            try {
-                const deploymentsResponse = await axios({
-                    method: 'GET',
-                    url: `https://api.koyeb.com/v1/deployments?service_id=${koyebServiceId}&limit=1`,
-                    headers: {
-                        'Authorization': `Bearer ${koyebApiKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (deploymentsResponse.data && deploymentsResponse.data.deployments && deploymentsResponse.data.deployments.length > 0) {
-                    latestDeployment = deploymentsResponse.data.deployments[0];
-                } else {
-                    throw new Error('No deployments found for this service');
-                }
-            } catch (error) {
-                console.error('Error fetching deployments:', error);
-                throw new Error('Failed to get latest deployment information');
-            }
-
-            // Create a new deployment based on the latest one
+            // Use the dedicated redeploy endpoint
             const response = await axios({
                 method: 'POST',
-                url: `https://api.koyeb.com/v1/deployments`,
+                url: `https://api.koyeb.com/v1/services/${koyebServiceId}/redeploy`,
                 headers: {
                     'Authorization': `Bearer ${koyebApiKey}`,
                     'Content-Type': 'application/json'
                 },
                 data: {
-                    service_id: koyebServiceId,
-                    definition: latestDeployment.definition
+                    // These are the default parameters, adjust as needed
+                    deployment_group: "web",
+                    use_cache: true,
+                    skip_build: false
                 }
             });
 
