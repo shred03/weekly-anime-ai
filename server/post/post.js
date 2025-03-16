@@ -74,7 +74,7 @@ const setupPostCommand = (bot, logger, ADMIN_IDS) => {
         const caption = `<b>${movieData.title} (${releaseYear})
 
 ╭━━━━━━━ ✦ ✦ ✦ ━━━━━━━╮
-▸ 𝗔𝘂𝗱𝗶𝗼: Hindi+English (E-subs)
+▸ 𝗔𝘂𝗱𝗶𝗼: Hindi+Korean (E-subs)
 ▸ 𝗤𝘂𝗮𝗹𝗶𝘁𝘆: 480p | 720p | 1080p 
 ▸ 𝗚𝗲𝗻𝗿𝗲: ${genres}
 ▸ 𝗥𝘂𝗻𝘁𝗶𝗺𝗲: ${formattedRuntime}
