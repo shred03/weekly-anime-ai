@@ -81,9 +81,9 @@ const setupTVPostCommand = (bot, logger, ADMIN_IDS) => {
 ╭━━━━━━━ ✦ ✦ ✦ ━━━━━━━╮
 ▸ 𝗔𝘂𝗱𝗶𝗼: Hindi-Korean (E-subs)
 ▸ 𝗤𝘂𝗮𝗹𝗶𝘁𝘆: 480p | 720p | 1080p 
-▸ 𝗥𝘂𝗻𝘁𝗶𝗺𝗲: ${formattedRuntime}
-▸ 𝗦𝗲𝗮𝘀𝗼𝗻𝘀: ${numberOfSeasons}
-▸ 𝗘𝗽𝗶𝘀𝗼𝗱𝗲𝘀: ${episodeCounts}
+▸ 𝗚𝗲𝗻𝗿𝗲: ${genres}
+▸ 𝗘𝗽𝗶𝘀𝗼𝗱𝗲 𝗟𝗲𝗻𝗴𝘁𝗵: ${formattedRuntime}
+▸ 𝗦𝗲𝗮𝘀𝗼𝗻𝘀: ${numberOfSeasons} | 𝗘𝗽𝗶𝘀𝗼𝗱𝗲𝘀: ${episodeCounts}
 ╰━━━━━━━ ✦ ✦ ✦ ━━━━━━━╯
 
 <blockquote>Powered By: @K_DRAMA_HUBS</blockquote>`;

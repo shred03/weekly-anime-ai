@@ -71,7 +71,7 @@ const setupPostCommand = (bot, logger, ADMIN_IDS) => {
         }
         const formattedRuntime = formatRuntime(runtime);
         
-        const caption = `<b>${movieData.title} (${releaseYear})
+        const caption = `<b>${movieData.title} (${releaseYear})</b>
 
 ╭━━━━━━━ ✦ ✦ ✦ ━━━━━━━╮
 ▸ 𝗔𝘂𝗱𝗶𝗼: Hindi+Korean (E-subs)
@@ -80,7 +80,7 @@ const setupPostCommand = (bot, logger, ADMIN_IDS) => {
 ▸ 𝗥𝘂𝗻𝘁𝗶𝗺𝗲: ${formattedRuntime}
 ╰━━━━━━━ ✦ ✦ ✦ ━━━━━━━╯
 
-<blockquote>Powered By: @K_DRAMA_HUBS</blockquote>`;
+    <blockquote>Powered By: @K_DRAMA_HUBS</blockquote>`;
 
         const inlineKeyboard = Markup.inlineKeyboard([
             Markup.button.url('𝑫𝒐𝒘𝒏𝒍𝒐𝒂𝒅 𝑯𝒆𝒓𝒆', downloadLink)
@@ -93,7 +93,10 @@ const setupPostCommand = (bot, logger, ADMIN_IDS) => {
     };
 
     const getMoviePosterUrl = (movieData) => {
-        if (movieData.poster_path) {
+        if (movieData.backdrop_path) {
+            return `https://image.tmdb.org/t/p/original${movieData.backdrop_path}`;
+        }
+        else if(movieData.backdrop_path){
             return `https://image.tmdb.org/t/p/w500${movieData.poster_path}`;
         }
         return null;
