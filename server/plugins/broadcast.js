@@ -1,11 +1,12 @@
 const { Telegraf } = require('telegraf');
 const User = require('../models/User');
 const Logger = require('../logs/Logs');
+const config = require('../config');
 
 module.exports = (bot, logger) => {
     bot.command('broadcast', async (ctx) => {
         // Check if user is admin
-        if (!process.env.ADMIN_IDS.split(',').includes(String(ctx.from.id))) {
+        if (!config.ADMIN_IDS.split(',').includes(String(ctx.from.id))) {
             return ctx.reply('❌ 𝙊𝙣𝙡𝙮 𝙖𝙙𝙢𝙞𝙣𝙨 𝙘𝙖𝙣 𝙪𝙨𝙚 𝙩𝙝𝙞𝙨 𝙘𝙤𝙢𝙢𝙖𝙣𝙙');
         }
 

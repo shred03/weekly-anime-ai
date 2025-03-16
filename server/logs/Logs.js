@@ -26,19 +26,17 @@ class Logger {
                 status,
                 details
             };
-            const safeUsername = username.replace(/_/g, '\\_');
-            const safeDetails = details.replace(/_/g, '\\_');
+
             // Create log message
             const logMessage = `
 📝 Bot Log Entry
-Bot Name: [K-Drama Collection](https://t.me/k_drama_collection_bot)
 ⏰ Time: ${timestamp}
-👤 User: ${safeUsername} 
-👤 UserID: (${userId})
+👤 User: <code>${username}</code>
+👤 UserId: <code>${userId}</code>
 🤖 Command: ${command}
 📊 Status: ${status}
 🔍 Type: ${type}
-${details ? `📋 Details: ${safeDetails}` : ''}`;
+${details ? `📋 Details: ${details}` : ''}`;
 
             // Save to file
             const fileName = `${format(new Date(), 'yyyy-MM-dd')}.log`;
@@ -50,7 +48,7 @@ ${details ? `📋 Details: ${safeDetails}` : ''}`;
             // Send to Telegram channel
             if (this.logChannelId) {
                 await this.bot.telegram.sendMessage(this.logChannelId, logMessage, {
-                    parse_mode: 'Markdown'
+                    parse_mode: 'HTML'
                 });
             }
 

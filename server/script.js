@@ -1,41 +1,44 @@
 const descriptions = {
-    welcome_image: "https://jpcdn.it/img/small/f5f9df3caee749da4bb483600ba701b1.webp",
-
-    welcome_text: `*ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ ᴋ-ᴅʀᴀᴍᴀ ᴄᴏʟʟᴇᴄᴛɪᴏɴꜱ!🎬✨
-ɢᴇᴛ ʏᴏᴜʀ ꜰᴀᴠᴏʀɪᴛᴇ ᴋ-ᴅʀᴀᴍᴀꜱ ᴀʟʟ ɪɴ ᴏɴᴇ ᴘʟᴀᴄᴇ! ᴡʜᴇᴛʜᴇʀ ʏᴏᴜ'ʀᴇ 
-ʟᴏᴏᴋɪɴɢ ꜰᴏʀ ᴛʀᴇɴᴅɪɴɢ ꜱᴇʀɪᴇꜱ, ᴄʟᴀꜱꜱɪᴄ ʜɪᴛꜱ, ᴏʀ ʜɪᴅᴅᴇɴ ɢᴇᴍꜱ, ᴡᴇ'ᴠᴇ ɢᴏᴛ ʏᴏᴜ ᴄᴏᴠᴇʀᴇᴅ.*`,
+    welcome_image: "https://jpcdn.it/img/7a6b735f3168f4903945e5bf3e988aca.png",
+    welcome_text: `🏠 Welcome to K-Drama Hubs Exclusive Bot`,
 
     // Home section content
-    home: `*ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ ᴋ-ᴅʀᴀᴍᴀ ᴄᴏʟʟᴇᴄᴛɪᴏɴꜱ!🎬✨
-ɢᴇᴛ ʏᴏᴜʀ ꜰᴀᴠᴏʀɪᴛᴇ ᴋ-ᴅʀᴀᴍᴀꜱ ᴀʟʟ ɪɴ ᴏɴᴇ ᴘʟᴀᴄᴇ! ᴡʜᴇᴛʜᴇʀ ʏᴏᴜ'ʀᴇ 
-ʟᴏᴏᴋɪɴɢ ꜰᴏʀ ᴛʀᴇɴᴅɪɴɢ ꜱᴇʀɪᴇꜱ, ᴄʟᴀꜱꜱɪᴄ ʜɪᴛꜱ, ᴏʀ ʜɪᴅᴅᴇɴ ɢᴇᴍꜱ, ᴡᴇ'ᴠᴇ ɢᴏᴛ ʏᴏᴜ ᴄᴏᴠᴇʀᴇᴅ.*`,
+    home: `🏠 Welcome to K-Drama Hubs Exclusive Bot
+
+    `,
 
 
     about: `
 
-🤖* ɴᴀᴍᴇ:* ᴋ-ᴅʀᴀᴍᴀ ᴄᴏʟʟᴇᴄᴛɪᴏɴꜱ ʙᴏᴛ
+🤖* Name:* K-Drama Collection
 
-📝* ʟᴀɴɢᴜᴀɢᴇ:* [ɴᴏᴅᴇ.ᴊs](https://nodejs.org) & [ᴍᴏɴɢᴏᴅʙ](https://mongodb.com)
+📝* Language:* [Node.Js](https://nodejs.org) 
 
-🧑‍💻* ᴅᴇᴠᴇʟᴏᴘᴇʀ ʙʏ:* [𝙺𝙰𝚁𝚃𝙰](https://t.me/HelpSupportEspadaBot)
+🧑‍💻* Created By:* [ᴇsᴘᴀᴅᴀ ɴᴏ.𝟷](https://t.me/HelpSupportEspadaBot)
 
 `,
 
     // Support section content
-    support: `
+    join_channels: `
 
-*ᴊᴏɪɴ ᴛʜᴇ ᴄʜᴀɴɴᴇʟ ᴀɴᴅ ʀᴇᴛʀɪᴠᴇ ʏᴏᴜʀ ғɪʟᴇ.*
+*ᴊᴏɪɴ ᴏᴜʀ ᴄʜᴀɴɴᴇʟꜱ.*
     
-*ᴍᴏᴠɪᴇs & sᴇʀɪᴇs:* [ᴋ-ᴅʀᴀᴍᴀ-ʜᴜʙs](https://t.me/K_DRAMA_HUBS)
+*K-Drama:* [K-Drama Hubs](https://t.me/K_DRAMA_HUBS)
+*Request&Chat:* [K-Drama Request & Chats](https://t.me/K_Drama_Request_Chat)
 `,
 
     commands: `🔍 *Available Commands*
 
 🧛 Admin Commands:
-• /link - Store single file
-• /batch- Store multiple file
-• /broadcast - Broadcast Message
-• /stats - Check Bot Statistics
+• /link or /sl - Single file
+• /batch or /ml - Multiple files
+• /stats - View bot statistics
+• /broadcast - Broadcast message
+• /post movie_name link - Create movies post
+• /setchannel channelId - Set channel to post 
+• /tvpost series_name link - Create series post 
+• /setsticker or /sc channelId/username - Set channel to post.
+
 
 👤 User Commands:
 • /start - Start the bot

@@ -3,15 +3,16 @@ const User = require('../models/User');
 const File = require('../models/File');
 const Admin = require('../models/Admin');
 const os = require('os');
+const config = require('../config');
 
 module.exports = function setupStats(bot, logger) {
-    const ADMIN_IDS = process.env.ADMIN_IDS.split(',').map(id => parseInt(id));
+    const ADMIN_IDS = config.ADMIN_IDS.split(',').map(id => parseInt(id));
 
     const ADMIN_COUNT = ADMIN_IDS.length;
 
     const isAdmin = async (ctx, next) => {
         if (!ADMIN_IDS.includes(ctx.from.id)) {
-            return ctx.reply('❌ Only admins can use this command');
+            return ctx.reply('❌ 𝙊𝙣𝙡𝙮 𝙖𝙙𝙢𝙞𝙣𝙨 𝙘𝙖𝙣 𝙪𝙨𝙚 𝙩𝙝𝙞𝙨 𝙘𝙤𝙢𝙢𝙖𝙣𝙙');
         }
         return next();
     };

@@ -7,15 +7,20 @@ const Admin = require('./models/Admin');
 const User = require('./models/User');
 const setupBroadcast = require('./plugins/broadcast');
 const descriptions = require('./script');
+const shortenLink = require('./plugins/shortner');
 const express = require('express');
 const Logger = require('./logs/Logs');
 const app = express();
 const setupStats = require('./plugins/stats')
-const setupTVShowPostCommand = require('./plugins/post');
+const setupPostCommand = require('./post/post');
 const config = require('./config');
-const shortenLink = require('./utils/linkShortener');
+const setupTVPostCommand = require('./post/tvpost');
+const {FORCE_CHANNELS} = require('./plugins/force');
+
+const DATABASE_NAME = process.env.DATABASE_NAME
+
 mongoose.connect(process.env.MONGODB_URI,{
-    dbName: process.env.DATABASE_NAME,
+    dbName: DATABASE_NAME,
     retryWrites: true,
     w: 'majority'
 })
@@ -25,19 +30,19 @@ mongoose.connect(process.env.MONGODB_URI,{
 const bot = new Telegraf(config.BOT_TOKEN);
 const ADMIN_IDS = config.ADMIN_IDS.split(',').map(id => parseInt(id));
 const DATABASE_FILE_CHANNELS = config.DATABASE_FILE_CHANNELS.split(',').map(id => id.trim());
-const FORCE_CHANNEL_ID = config.FORCE_CHANNEL_ID;
-const FORCE_CHANNEL_USERNAME = config.FORCE_CHANNEL_USERNAME ||'K_DRAMA_HUBS';
-const AUTO_DELETE = config.AUTO_DELETE_FILES === 'true';
-const DELETE_MINUTES = parseInt(config.AUTO_DELETE_TIME) || 7;
+const AUTO_DELETE = config.AUTO_DELETE_FILES;
+const DELETE_MINUTES = config.AUTO_DELETE_TIME;
 const logger = new Logger(bot, config.LOG_CHANNEL_ID);
 setupBroadcast(bot, logger);
 setupStats(bot, logger)
-setupTVShowPostCommand(bot, logger, ADMIN_IDS)
+setupPostCommand(bot, logger, ADMIN_IDS);
+setupTVPostCommand(bot, logger, ADMIN_IDS);
+
 
 const mainKeyboard = Markup.inlineKeyboard([
     [Markup.button.callback('🏠 Home', 'home')],
     [
-        Markup.button.callback('🛠 Support', 'support'),
+        Markup.button.callback('📌Join Channels', 'join_channels'),
         Markup.button.callback('ℹ️ About', 'about')
     ],
     [Markup.button.callback('📋 Commands', 'commands')],
@@ -51,6 +56,7 @@ const isAdmin = async (ctx, next) => {
 };
 
 const generateUniqueId = () => crypto.randomBytes(8).toString('hex');
+
 
 const extractMessageInfo = (link) => {
     try {
@@ -182,10 +188,21 @@ const storeFileFromMessage = async (message, uniqueId, adminId, channelId) => {
 
 const checkChannelMembership = async (ctx, userId) => {
     try {
-        const member = await ctx.telegram.getChatMember(FORCE_CHANNEL_ID, userId);
-        return !['left', 'kicked'].includes(member.status);
+        for (const channel of FORCE_CHANNELS) {
+            try {
+                const member = await ctx.telegram.getChatMember(channel.id, userId);
+                // If user is not a member of any one channel, return false
+                if (['left', 'kicked'].includes(member.status)) {
+                    return false;
+                }
+            } catch (error) {
+                console.error(`Error checking membership for channel ${channel.id}:`, error);
+                return false; // Assume failure means the user isn't a member
+            }
+        }
+        return true; // If loop completes, user is a member of all channels
     } catch (error) {
-        console.error('Error checking channel membership:', error);
+        console.error('Error in checkChannelMembership:', error);
         return false;
     }
 };
@@ -227,9 +244,9 @@ bot.command(['link', 'sl'], isAdmin, async (ctx) => {
             const shortUrl = await shortenLink(retrievalLink, uniqueId);
             
             const responseMessage = [
-                '✅ File Stored Successfully!',
+                `✅ File stored successfully!`,
                 `🔗 Original URL: <code>${retrievalLink}</code>`,
-                shortUrl ? `🔗 Shortened URL: <code>${shortUrl}</code>` : '(URL shortening service unavailable)'
+                `🔗 Short URL: <code>${shortUrl}</code>`
             ].join('\n');
         
             await ctx.reply(responseMessage, {parse_mode: 'HTML'});
@@ -294,8 +311,6 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
 
         const BATCH_SIZE = 10;
         const files = [];
-        let processedCount = 0;
-        let deletedCount = 0;
         
         for (let i = 0; i < messageIds.length; i += BATCH_SIZE) {
             const batch = messageIds.slice(i, i + BATCH_SIZE);
@@ -319,14 +334,10 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
                                 message_id: msgId
                             });
                         }
-                        await ctx.telegram.deleteMessage(ctx.chat.id, message.message_id);
                     }
-                    processedCount++;
+                    await ctx.telegram.deleteMessage(ctx.chat.id, message.message_id);
                 } catch (error) {
-                    // Handle deleted messages silently
-                    deletedCount++;
-                    processedCount++;
-                    console.log(`Message ${msgId} not found or could not be forwarded`);
+                    console.error(`Error processing message ${msgId}:`, error);
                 }
             }));
 
@@ -345,11 +356,11 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
             const retrievalLink = `https://t.me/${ctx.botInfo.username}?start=${uniqueId}`;
             const shortUrl = await shortenLink(retrievalLink, uniqueId);
             
+            
             const responseMessage = [
-                `✅ Stored ${files.length}/${messageIds.length} files!`,
-                `${deletedCount > 0 ? `ℹ️ ${deletedCount} messages were skipped (likely deleted).` : ''}`,
+                `✅ Stored ${files.length} files!`,
                 `🔗 Original URL: <code>${retrievalLink}</code>`,
-                shortUrl ? `🔗 Shortened URL: <code>${shortUrl}</code>` : '(URL shortening unavailable)'
+                `🔗 Short URL: <code>${shortUrl}</code>`
             ].join('\n');
         
             await ctx.reply(responseMessage, {parse_mode: 'HTML'});
@@ -359,12 +370,9 @@ bot.command(['batch', 'ml'], isAdmin, async (ctx) => {
                 ctx.from.username || 'Unknown',
                 'Batch command used',
                 'SUCCESS',
-                `Total ${files.length}/${processedCount} files stored (${deletedCount} skipped) \n URL: ${retrievalLink}`,
+                `Total ${files.length} files stored \n URL: ${retrievalLink}`,
             );
-        } else {
-            await ctx.reply('⚠️ No valid files were found in the specified range.');
         }
-        
         await ctx.telegram.deleteMessage(ctx.chat.id, progressMsg.message_id);
         
     } catch (error) {
@@ -387,7 +395,7 @@ bot.command('start', async (ctx) => {
         );
 
         const uniqueId = ctx.message.text.split(' ')[1];
-        
+
         if (uniqueId) {
             const files = await File.find({ unique_id: uniqueId }).sort({ message_id: 1 });
             if (!files.length) return ctx.reply('Files not found.');
@@ -395,11 +403,20 @@ bot.command('start', async (ctx) => {
             if (!ADMIN_IDS.includes(ctx.from.id)) {
                 const isMember = await checkChannelMembership(ctx, ctx.from.id);
                 if (!isMember) {
-                    const joinKeyboard = Markup.inlineKeyboard([
-                        Markup.button.url('Join Channel', `https://t.me/${FORCE_CHANNEL_USERNAME}`),
-                        Markup.button.callback('✅ I\'ve Joined', `check_join_${uniqueId}`)
-                    ]);
-                    await ctx.reply('⚠️ To access the files, please join our channel first.', joinKeyboard);
+                    // Create buttons for all channels
+                    const channelButtons = FORCE_CHANNELS.map(channel => 
+                        Markup.button.url(`Join ${channel.name}`, `https://t.me/${channel.username}`)
+                    );
+                    
+                    // Add the check button at the end
+                    channelButtons.push(Markup.button.callback('✅ I\'ve Joined', `check_join_${uniqueId}`));
+                    
+                    const joinKeyboard = Markup.inlineKeyboard(
+                        // Arrange buttons in rows of 1 or 2 depending on your preference
+                        channelButtons.map(button => [button])
+                    );
+                    
+                    await ctx.reply('😊 To access the files, please join of our channels:', joinKeyboard);
                     return;
                 }
             }
@@ -443,7 +460,10 @@ bot.command('start', async (ctx) => {
                         for (const msgId of sentMessages) {
                             await ctx.telegram.deleteMessage(ctx.chat.id, msgId);
                         }
-                        await ctx.reply('🗑️ Files have been automatically deleted.');
+
+                        const fileDeleteWarningMsg = '<blockquote>🗑️ Files have been automatically deleted.</blockquote>';
+
+                        await ctx.reply(fileDeleteWarningMsg, {parse_mode: 'HTML'});
                     } catch (error) {
                         console.error('Auto-delete error:', error);
                     }
@@ -457,7 +477,6 @@ bot.command('start', async (ctx) => {
                 'SUCCESS',
                 'Welcome message sent!'
             );
-
             await ctx.replyWithPhoto(descriptions.welcome_image, {
                 caption: `Hello ${ctx.from.first_name}\n\n${descriptions.welcome_text}`,
                 parse_mode: 'Markdown',
@@ -481,13 +500,18 @@ bot.action(/^check_join_(.+)/, async (ctx) => {
     try {
         const isMember = await checkChannelMembership(ctx, ctx.from.id);
         if (!isMember) {
-            await ctx.answerCbQuery('❌ You haven\'t joined the channel yet!');
+            await ctx.answerCbQuery('😒 You haven\'t joined the channels yet!');
         } else {
             await ctx.deleteMessage();
-            await ctx.reply('Go back to the post and click again to get the files');
+            await ctx.reply(`😍 Thank you for joining! Now send below message to retrieve your files...`);
+            // Trigger the start command with the uniqueId to send the files
+            await ctx.telegram.sendMessage(ctx.chat.id, `<code>/start ${uniqueId}</code>`,{
+                parse_mode: 'HTML'
+            });
         }
     } catch (error) {
-        await ctx.answerCbQuery('Error verifying membership.');
+        console.error('Error verifying membership:', error);
+        await ctx.answerCbQuery('Error verifying channel membership.');
     }
 });
 
@@ -509,7 +533,7 @@ const handleMenuAction = async (ctx, action) => {
 
 // Menu actions
 bot.action('home', ctx => handleMenuAction(ctx, 'home'));
-bot.action('support', ctx => handleMenuAction(ctx, 'support'));
+bot.action('join_channels', ctx => handleMenuAction(ctx, 'join_channels'));
 bot.action('about', ctx => handleMenuAction(ctx, 'about'));
 bot.action('commands', ctx => handleMenuAction(ctx, 'commands'));
 

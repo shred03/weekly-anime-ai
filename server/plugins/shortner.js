@@ -1,13 +1,15 @@
 const axios = require('axios');
-require('dotenv').config();
+const config = require('../config')
 
 const shortenLink = async (originalUrl, uniqueId) => {
+    const alisMsg = `KDH${uniqueId}`
     try {
-        const response = await axios.get('https://shrinkme.io/api', {
+        const response = await axios.get('https://get2short.com/api', {
+
             params: {
-                api: process.env.SHRINKME_API_KEY,
+                api: config.GETTOSHORT_API,
                 url: originalUrl,
-                alias: uniqueId
+                alias: alisMsg,
             }
         });
         

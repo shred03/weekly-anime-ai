@@ -5,13 +5,13 @@ const FileSchema = new mongoose.Schema({
     file_id: String,
     file_link: String,
     channel_id: String,
-    file_type: String,  
+    file_type: String,  // document, photo, video, animation, sticker
     timestamp: { type: Date, default: Date.now },
     is_multiple: { type: Boolean, default: false },
     unique_id: String,
     message_id: Number,
     stored_by: { type: Number, required: true },
-    original_caption: { type: String, default: 'NA' }
+    original_caption: { type: String, default: '' }
 });
 
 const File = mongoose.model('File', FileSchema);

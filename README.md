@@ -30,7 +30,7 @@ Before setting up the bot, make sure you have:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/iglideCS/KDH.git
+git clone https://github.com/iglideCS/pk-cinema-ai.git
 cd server
 ```
 
@@ -57,25 +57,26 @@ npm start
 
 ### Admin Commands
 
-- `/link`: Store a single file from a channel post
+- `/link` or `/sl`: Store a single file from a channel post
   ```
   /link https://t.me/c/xxxxx/123
   ```
 
-- `/batch` : Store multiple files from a range of messages
+- `/batch` or `/ml`: Store multiple files from a range of messages
   ```
   /batch https://t.me/c/xxxxx/123 https://t.me/c/xxxxx/128
   ```
 
 - `/broadcast`: Broadcast a message
-  ```
-  /broadcast Reply to message
-  ```
-- `/stats`: Check Bot Statistics
+
+
+- `/stats`: View bot statistics
+  
 
 ### User Commands
 
 - `/start`: Start the bot and view welcome message
+- `/start <unique_id>`: Retrieve stored files using a unique ID
 
 ## File Storage Process 📝
 
@@ -130,4 +131,4 @@ If you encounter any issues or have questions, please:
 - [Node.js](https://nodejs.org/) - Runtime Environment
 
 ---
-Made with ❤️ by [KARTA]
+Made with ❤️ by [Glider]
