@@ -73,19 +73,17 @@ const setupPostCommand = (bot, logger, ADMIN_IDS) => {
         
         const caption = `<b>${movieData.title} (${releaseYear})
 
-» 𝗔𝘂𝗱𝗶𝗼: Hindi+English (E-subs)
-» 𝗤𝘂𝗮𝗹𝗶𝘁𝘆: 480p | 720p | 1080p 
-» 𝗚𝗲𝗻𝗿𝗲: ${genres}
-» 𝗥𝘂𝗻𝘁𝗶𝗺𝗲: ${formattedRuntime}
+╭━━━━━━━ ✦ ✦ ✦ ━━━━━━━╮
+▸ 𝗔𝘂𝗱𝗶𝗼: Hindi+English (E-subs)
+▸ 𝗤𝘂𝗮𝗹𝗶𝘁𝘆: 480p | 720p | 1080p 
+▸ 𝗚𝗲𝗻𝗿𝗲: ${genres}
+▸ 𝗥𝘂𝗻𝘁𝗶𝗺𝗲: ${formattedRuntime}
+╰━━━━━━━ ✦ ✦ ✦ ━━━━━━━╯
 
-» 𝗦𝘆𝗻𝗼𝗽𝘀𝗶𝘀:</b>
-<blockquote>${synopsis}</blockquote>
-    
-<b>@Teamxpirates</b>
-<blockquote>[𝗜𝗳 𝗬𝗼𝘂 𝗦𝗵𝗮𝗿𝗲 𝗢𝘂𝗿 𝗙𝗶𝗹𝗲𝘀 𝗪𝗶𝘁𝗵𝗼𝘂𝘁 𝗖𝗿𝗲𝗱𝗶𝘁, 𝗧𝗵𝗲𝗻 𝗬𝗼𝘂 𝗪𝗶𝗹𝗹 𝗯𝗲 𝗕𝗮𝗻𝗻𝗲𝗱]</blockquote>`;
+<blockquote>Powered By: @K_DRAMA_HUBS</blockquote>`;
 
         const inlineKeyboard = Markup.inlineKeyboard([
-            Markup.button.url('𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐍𝐨𝐰', downloadLink)
+            Markup.button.url('𝑫𝒐𝒘𝒏𝒍𝒐𝒂𝒅 𝑯𝒆𝒓𝒆', downloadLink)
         ]);
 
         return {

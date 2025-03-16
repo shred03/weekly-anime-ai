@@ -77,18 +77,16 @@ const setupTVPostCommand = (bot, logger, ADMIN_IDS) => {
         const formattedRuntime = formatRuntime(episodeRuntime);
         
         const caption = `<b>${seriesData.name} (${firstAirYear})</b>
-╭──────────────────────
-» 𝗔𝘂𝗱𝗶𝗼: Hindi-English (E-subs)
-» 𝗤𝘂𝗮𝗹𝗶𝘁𝘆: 480p | 720p | 1080p 
-» 𝗥𝘂𝗻𝘁𝗶𝗺𝗲: ${formattedRuntime}
-» 𝗦𝗲𝗮𝘀𝗼𝗻𝘀: ${numberOfSeasons}
-» 𝗘𝗽𝗶𝘀𝗼𝗱𝗲𝘀: ${episodeCounts}
-├──────────────────────
-» 𝗚𝗲𝗻𝗿𝗲𝘀: ${genres}
-╰──────────────────────
-    
-<b>@Teamxpirates</b>
-<blockquote>[𝗜𝗳 𝗬𝗼𝘂 𝗦𝗵𝗮𝗿𝗲 𝗢𝘂𝗿 𝗙𝗶𝗹𝗲𝘀 𝗪𝗶𝘁𝗵𝗼𝘂𝘁 𝗖𝗿𝗲𝗱𝗶𝘁, 𝗧𝗵𝗲𝗻 𝗬𝗼𝘂 𝗪𝗶𝗹𝗹 𝗯𝗲 𝗕𝗮𝗻𝗻𝗲𝗱]</blockquote>`;
+
+╭━━━━━━━ ✦ ✦ ✦ ━━━━━━━╮
+▸ 𝗔𝘂𝗱𝗶𝗼: Hindi-Korean (E-subs)
+▸ 𝗤𝘂𝗮𝗹𝗶𝘁𝘆: 480p | 720p | 1080p 
+▸ 𝗥𝘂𝗻𝘁𝗶𝗺𝗲: ${formattedRuntime}
+▸ 𝗦𝗲𝗮𝘀𝗼𝗻𝘀: ${numberOfSeasons}
+▸ 𝗘𝗽𝗶𝘀𝗼𝗱𝗲𝘀: ${episodeCounts}
+╰━━━━━━━ ✦ ✦ ✦ ━━━━━━━╯
+
+<blockquote>Powered By: @K_DRAMA_HUBS</blockquote>`;
 
         // Create buttons for each season link
         const buttons = seasonLinks.map(seasonLink => {
