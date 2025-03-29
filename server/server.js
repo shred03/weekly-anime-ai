@@ -405,16 +405,21 @@ bot.command('start', async (ctx) => {
                 if (!isMember) {
                     // Create buttons for all channels
                     const channelButtons = FORCE_CHANNELS.map(channel => 
-                        Markup.button.url(`Join ${channel.name}`, `https://t.me/${channel.username}`)
+                        Markup.button.url(`Join ${channel.name}`, `https://t.me/${channel.username}`),
+                        Markup.button.url(`Try Again`, `https://t.me/${ctx.botInfo.username}?start=${uniqueId}`)
                     );
                     
                     // Add the check button at the end
-                    channelButtons.push(Markup.button.callback('✅ I\'ve Joined', `check_join_${uniqueId}`));
+                    const checkButton = Markup.button.callback('✅ I\'ve Joined', `check_join_${uniqueId}`);
+                    const tryAgainButton = Markup.button.url(`Try Again`, `https://t.me/${ctx.botInfo.username}?start=${uniqueId}`);
+
+                    const buttonRows = [
+                        ...channelButtons.map(button => [button]), 
+                        [checkButton],                             
+                        [tryAgainButton]                           
+                    ];
                     
-                    const joinKeyboard = Markup.inlineKeyboard(
-                        // Arrange buttons in rows of 1 or 2 depending on your preference
-                        channelButtons.map(button => [button])
-                    );
+                    const joinKeyboard = Markup.inlineKeyboard(buttonRows);
                     
                     await ctx.reply('😊 To access the files, please join of our channels:', joinKeyboard);
                     return;
@@ -503,11 +508,7 @@ bot.action(/^check_join_(.+)/, async (ctx) => {
             await ctx.answerCbQuery('😒 You haven\'t joined the channels yet!');
         } else {
             await ctx.deleteMessage();
-            await ctx.reply(`😍 Thank you for joining! Now send below message to retrieve your files...`);
-            // Trigger the start command with the uniqueId to send the files
-            await ctx.telegram.sendMessage(ctx.chat.id, `<code>/start ${uniqueId}</code>`,{
-                parse_mode: 'HTML'
-            });
+            await ctx.reply('😍 Thank you for joining!');
         }
     } catch (error) {
         console.error('Error verifying membership:', error);
