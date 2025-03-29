@@ -2,7 +2,7 @@ const axios = require('axios');
 const config = require('../config')
 
 const shortenLink = async (originalUrl, uniqueId) => {
-    const alisMsg = `KDH${uniqueId}`
+    const alisMsg = `TBATE${uniqueId}`
     try {
         const response = await axios.get('https://get2short.com/api', {
 
